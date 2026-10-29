@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ELH - بنك التدريبات والامتحانات الشاملة - Prep2</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>*{font-family:'Cairo',sans-serif} .en{font-family:'Plus Jakarta Sans',sans-serif}</style>
+</head>
+<body class="bg-[#F8FAFC]">
+<header class="bg-white border-b sticky top-0 z-20">
+<div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
+<div class="flex items-center gap-2">
+<div class="w-9 h-9 bg-[#00D1C1] rounded-xl flex items-center justify-center text-white font-bold">Q</div>
+<div><h1 class="font-bold text-sm">Prep2 - بنك شامل - نوعان</h1><p class="text-[11px] text-gray-500">النوع 1: تدريبات وحدات • النوع 2: امتحانات شاملة بمؤقت + AI</p></div>
+</div>
+<div class="flex gap-2">
+<button onclick="switchMode('training')" id="btnTraining" class="px-4 py-2 bg-[#0F172A] text-white rounded-xl text-xs font-bold">📚 تدريبات وحدات</button>
+<button onclick="switchMode('exams')" id="btnExams" class="px-4 py-2 bg-gray-100 rounded-xl text-xs font-bold">📝 امتحانات شاملة</button>
+</div>
+</div>
+</header>
+
+<!-- MODE 1: TRAINING -->
+<div id="modeTraining" class="max-w-7xl mx-auto p-4 grid md:grid-cols-4 gap-4">
+<div class="md:col-span-1 space-y-3">
+<div class="bg-white rounded-2xl p-4 border">
+<h3 class="font-bold text-sm">وحدة</h3>
+<select id="fUnit" onchange="renderTraining()" class="w-full mt-2 p-2 border rounded-xl text-xs">
+<option value="">كل الوحدات</option>
+<option value="1">1 Coming home - المنزل</option>
+<option value="2">2 How are you feeling - الصحة</option>
+<option value="3">3 Great jobs - الوظائف</option>
+<option value="4">4 Into the past - الماضي</option>
+<option value="5">5 Helping you - المساعدة</option>
+<option value="6">6 Different environments - البيئات</option>
+</select>
+<h3 class="font-bold text-sm mt-4">الحاسة (نهج الموقع)</h3>
+<div class="grid grid-cols-2 gap-1 mt-2">
+<button onclick="setSenseTraining('')" class="p-2 bg-gray-100 rounded-xl text-[10px] s-btn" data-s="">الكل</button>
+<button onclick="setSenseTraining('visual')" class="p-2 bg-blue-50 rounded-xl text-[10px] s-btn" data-s="visual">👁️ بصري</button>
+<button onclick="setSenseTraining('audio')" class="p-2 bg-purple-50 rounded-xl text-[10px] s-btn" data-s="audio">👂 سمعي</button>
+<button onclick="setSenseTraining('kinesthetic')" class="p-2 bg-green-50 rounded-xl text-[10px] s-btn" data-s="kinesthetic">✋ حركي</button>
+<button onclick="setSenseTraining('social')" class="p-2 bg-pink-50 rounded-xl text-[10px] s-btn" data-s="social">🗣️ اجتماعي</button>
+<button onclick="setSenseTraining('analytical')" class="p-2 bg-orange-50 rounded-xl text-[10px] s-btn" data-s="analytical">🧠 تحليلي</button>
+</div>
+<h3 class="font-bold text-sm mt-4">النوع</h3>
+<select id="fType" onchange="renderTraining()" class="w-full mt-2 p-2 border rounded-xl text-xs">
+<option value="">كل الأنواع</option>
+<option value="vocab">مفردات</option>
+<option value="grammar">قواعد</option>
+<option value="reading">قراءة</option>
+<option value="listening">استماع</option>
+<option value="writing">كتابة</option>
+<option value="dialogue">محادثة</option>
+<option value="situational">مواقف</option>
+</select>
+</div>
+<div class="bg-[#0F172A] text-white rounded-2xl p-4">
+<p class="text-xs">تم حل: <span id="tSolved">0</span>/<span id="tTotal">0</span></p>
+<div class="w-full bg-white/20 h-2 rounded-full mt-2"><div id="tBar" class="bg-[#00D1C1] h-2 rounded-full" style="width:0%"></div></div>
+<p class="text-[11px] mt-2">أفضل حاسة: <span id="tBest">-</span></p>
+</div>
+</div>
+
+<div class="md:col-span-3 space-y-3">
+<div class="bg-white rounded-2xl p-3 border flex justify-between">
+<div class="flex gap-2"><button onclick="tPrev()" class="px-3 py-2 bg-gray-100 rounded-xl text-xs">⬅️</button><button onclick="tNext()" class="px-3 py-2 bg-[#00D1C1] text-white rounded-xl text-xs">➡️</button></div>
+<span id="tCounter" class="text-xs font-bold">1</span>
+<button onclick="tAnswer()" class="px-3 py-2 bg-[#FFB800] rounded-xl text-xs font-bold">الإجابة</button>
+</div>
+<div id="tCard" class="bg-white rounded-2xl p-6 border min-h-[450px]"></div>
+<div class="grid grid-cols-3 gap-2"><button onclick="tCorrect()" class="py-3 bg-green-500 text-white rounded-xl text-xs font-bold">✅ صحيح</button><button onclick="tWrong()" class="py-3 bg-red-500 text-white rounded-xl text-xs font-bold">❌ خطأ</button><button onclick="tSpeak()" class="py-3 bg-black text-white rounded-xl text-xs font-bold">🔊</button></div>
+</div>
+</div>
+
+<!-- MODE 2: EXAMS -->
+<div id="modeExams" class="hidden max-w-7xl mx-auto p-4">
+<div class="grid md:grid-cols-4 gap-4">
+<div class="md:col-span-1 space-y-3">
+<div class="bg-white rounded-2xl p-4 border">
+<h3 class="font-bold text-sm">اختر المحافظة والامتحان</h3>
+<select id="examSelect" onchange="loadExam()" class="w-full mt-2 p-2 border rounded-xl text-xs">
+<option value="">-- اختر امتحان --</option>
+<option value="cairo_2024">القاهرة 2024 - ترم أول - ساعتان</option>
+<option value="cairo_2023">القاهرة 2023 - ترم أول</option>
+<option value="cairo_2022">القاهرة 2022 - ترم أول</option>
+<option value="giza_2024">الجيزة 2024</option>
+<option value="giza_2023">الجيزة 2023</option>
+<option value="qal_2024">القليوبية 2024</option>
+<option value="qal_2023">القليوبية 2023</option>
+<option value="alex_2024">الإسكندرية 2024</option>
+<option value="alex_2023">الإسكندرية 2023</option>
+<option value="aswan_2024">أسوان 2024 - ساعتان</option>
+<option value="aswan_2023">أسوان 2023</option>
+<option value="aswan_2022">أسوان 2022</option>
+</select>
+<div class="mt-3 p-3 bg-yellow-50 border rounded-xl text-[11px]">
+<p class="font-bold">مواصفات الامتحان الفعلي:</p>
+<p>الزمن: ساعتان (120 دقيقة) - طبقاً لتعليمات الوزارة</p>
+<p>الدرجة: 30 درجة</p>
+<p>• Language Functions 5 درجات</p>
+<p>• Reading 6 درجات</p>
+<p>• Language 10 درجات</p>
+<p>• Writing 9 درجات</p>
+</div>
+<button onclick="startExam()" class="w-full mt-3 bg-[#0F172A] text-white py-3 rounded-xl text-xs font-bold">▶️ ابدأ الامتحان بمؤقت</button>
+<button onclick="resetExam()" class="w-full mt-2 bg-gray-100 py-2 rounded-xl text-xs">إعادة</button>
+</div>
+<div class="bg-[#0F172A] text-white rounded-2xl p-4">
+<h3 class="font-bold text-xs">المؤقت</h3>
+<p id="timer" class="text-2xl font-bold mt-2">02:00:00</p>
+<p class="text-[11px] mt-1">الدرجة: <span id="examScore">0</span>/30</p>
+<div class="w-full bg-white/20 h-2 rounded-full mt-2"><div id="examBar" class="bg-[#00D1C1] h-2 rounded-full" style="width:0%"></div></div>
+<button onclick="finishExam()" class="w-full mt-3 bg-[#FFB800] text-black py-2 rounded-xl text-xs font-bold">📤 إنهاء وتصحيح AI</button>
+</div>
+</div>
+
+<div class="md:col-span-3 bg-white rounded-2xl border p-4 min-h-[600px]">
+<div id="examInfo" class="mb-4 p-3 bg-blue-50 rounded-xl text-xs">اختر امتحان من القائمة وابدأ - المؤقت 120 دقيقة مثل الامتحان الحقيقي</div>
+<div id="examPaper" class="space-y-6"></div>
+<div id="examResult" class="hidden mt-6 p-4 bg-green-50 border rounded-2xl"></div>
+</div>
+</div>
+</div>
+
+<script>
+// ====== TRAINING BANK - 180+ QUESTIONS ======
+const TRAIN_Q = [
+// UNIT 1 - Coming home - 30 diverse
+{id:1, unit:'1', type:'vocab', sense:'visual', diff:'easy', q:'👁️ صورة: شقة بها بلكونة. كلمة "balcony" تعني؟', options:['شرفة','مطبخ','حمام','جراج'], ans:0, exp:'balcony = شرفة'},
+{id:2, unit:'1', type:'vocab', sense:'audio', diff:'easy', q:'👂 استمع: "airport" - أين تذهب للسفر بالطائرة؟', options:['airport المطار','hospital المستشفى','school المدرسة','park الحديقة'], ans:0, exp:'airport = مطار'},
+{id:3, unit:'1', type:'grammar', sense:'analytical', diff:'medium', q:'There ___ a big carpet in the living room.', options:['is','are','am','be'], ans:0, exp:'There is + مفرد'},
+{id:4, unit:'1', type:'grammar', sense:'analytical', diff:'medium', q:'There ___ three bedrooms upstairs.', options:['is','are','was','isn’t'], ans:1, exp:'There are + جمع'},
+{id:5, unit:'1', type:'grammar', sense:'visual', diff:'medium', q:'My flat is ___ than yours. (big)', options:['big','bigger','biggest','more big'], ans:1, exp:'مقارنة: bigger than'},
+{id:6, unit:'1', type:'dialogue', sense:'social', diff:'easy', q:'A: Where do you live? B: ___', options:['I live in a flat in Aswan','I am 13','I like rice','It is hot'], ans:0, exp:'سؤال عن السكن'},
+{id:7, unit:'1', type:'reading', sense:'analytical', diff:'medium', q:'Text: "Our house in Edfu has 2 floors. My room is on the first floor." Where is my room?', options:['First floor','Ground floor','Roof','Garden'], ans:0, exp:'النص يقول first floor'},
+{id:8, unit:'1', type:'situational', sense:'social', diff:'medium', q:'صديقك يقول "My room is messy". ترد:', options:['You should tidy it','I like it','It is big','Nice'], ans:0, exp:'نصيحة اجتماعية'},
+{id:9, unit:'1', type:'writing', sense:'kinesthetic', diff:'medium', q:'رتب: is / kitchen / the / fridge / in', options:['The fridge is in the kitchen','Kitchen fridge is','Is fridge kitchen','Fridge kitchen is'], ans:0, exp:'ترتيب صحيح'},
+{id:10, unit:'1', type:'vocab', sense:'kinesthetic', diff:'easy', q:'✋ صل: "curtains" →', options:['ستائر','سجاد','كرسي','سرير'], ans:0, exp:'curtains ستائر'},
+{id:11, unit:'1', type:'grammar', sense:'analytical', diff:'hard', q:'This is the house ___ I grew up.', options:['which','where','who','when'], ans:1, exp:'where للمكان'},
+{id:12, unit:'1', type:'listening', sense:'audio', diff:'medium', q:'👂 "My flat is on the third floor" - Which floor?', options:['Third','Second','First','Ground'], ans:0, exp:'third floor'},
+{id:13, unit:'1', type:'vocab', sense:'visual', diff:'medium', q:'👁️ "arrival" عكس "departure". arrival = ؟', options:['وصول','مغادرة','سفر','حقيبة'], ans:0, exp:'arrival وصول'},
+{id:14, unit:'1', type:'grammar', sense:'analytical', diff:'medium', q:'How ___ rooms are there?', options:['many','much','long','old'], ans:0, exp:'How many + جمع يعد'},
+{id:15, unit:'1', type:'reading', sense:'social', diff:'medium', q:'Aswan houses are colorful and have flat roofs. Why flat roofs?', options:['Because little rain','Because much rain','Because cold','Because small'], ans:0, exp:'أسوان قليلة المطر'},
+{id:16, unit:'1', type:'vocab', sense:'audio', diff:'easy', q:'"suitcase" تستخدم لـ', options:['حمل الملابس للسفر','الطبخ','النوم','الكتابة'], ans:0, exp:'حقيبة سفر'},
+{id:17, unit:'1', type:'grammar', sense:'kinesthetic', diff:'easy', q:'Complete: I ___ in Aswan since 2010. (live)', options:['live','have lived','lived','am living'], ans:1, exp:'since + مضارع تام'},
+{id:18, unit:'1', type:'dialogue', sense:'social', diff:'medium', q:'A: How big is your flat? B: ___', options:['It has 3 bedrooms','I am fine','I like it','It is hot'], ans:0, exp:'وصف الحجم'},
+{id:19, unit:'1', type:'situational', sense:'analytical', diff:'medium', q:'تريد وصف بيتك لصديق أجنبي: تبدأ بـ', options:['I live in a...','I am...','I like...','I have...'], ans:0, exp:'بداية وصف'},
+{id:20, unit:'1', type:'writing', sense:'visual', diff:'hard', q:'اكتب جملة بـ "there are" عن قريتك', options:['There are many trees','I am boy','Hello','Good morning'], ans:0, exp:'استخدام there are'},
+// UNIT 2
+{id:21, unit:'2', type:'vocab', sense:'visual', diff:'easy', q:'🤕 "headache" = ألم في', options:['الرأس','البطن','الأسنان','الظهر'], ans:0, exp:'head+ache'},
+{id:22, unit:'2', type:'vocab', sense:'visual', diff:'easy', q:'🤒 "fever" تعني', options:['حرارة مرتفعة','برد','جوع','سعادة'], ans:0, exp:'fever حمى'},
+{id:23, unit:'2', type:'grammar', sense:'analytical', diff:'medium', q:'You ___ see a doctor if you have fever.', options:['should','shouldn’t','mustn’t','should to'], ans:0, exp:'نصيحة should'},
+{id:24, unit:'2', type:'grammar', sense:'analytical', diff:'medium', q:'I ___ ill yesterday.', options:['am','was','were','is'], ans:1, exp:'yesterday → was'},
+{id:25, unit:'2', type:'dialogue', sense:'social', diff:'easy', q:'Doctor: What’s wrong? Patient: ___', options:['I have a cold','I am fine','Thank you','Good morning'], ans:0, exp:'وصف المرض'},
+{id:26, unit:'2', type:'reading', sense:'analytical', diff:'medium', q:'If you have stomachache, don’t eat junk food. Advice?', options:['Avoid junk food','Eat more junk','Drink soda','Sleep less'], ans:0, exp:'فهم النصيحة'},
+{id:27, unit:'2', type:'listening', sense:'audio', diff:'medium', q:'👂 "You should rest" - ماذا تفعل؟', options:['ترتاح','تجري','تأكل','تلعب'], ans:0, exp:'rest راحة'},
+{id:28, unit:'2', type:'writing', sense:'kinesthetic', diff:'medium', q:'نصيحة لصديق عنده toothache', options:['You should see dentist','You are happy','I like teeth','It is good'], ans:0, exp:'نصيحة مناسبة'},
+{id:29, unit:'2', type:'vocab', sense:'kinesthetic', diff:'easy', q:'"cough" = ؟', options:['سعال','عطس','صداع','حرارة'], ans:0, exp:'cough سعال'},
+{id:30, unit:'2', type:'situational', sense:'social', diff:'medium', q:'صديقك مريض، تقول:', options:['Get well soon','Happy birthday','Good luck','Nice to meet you'], ans:0, exp:'تمني الشفاء'},
+// UNIT 3
+{id:31, unit:'3', type:'vocab', sense:'visual', diff:'easy', q:'👨‍🏫 يعلم الطلاب', options:['teacher معلم','doctor طبيب','farmer فلاح','engineer مهندس'], ans:0, exp:'teacher'},
+{id:32, unit:'3', type:'vocab', sense:'visual', diff:'easy', q:'👨‍⚕️ يعمل في المستشفى', options:['doctor','teacher','pilot','driver'], ans:0, exp:'doctor'},
+{id:33, unit:'3', type:'grammar', sense:'analytical', diff:'medium', q:'My father ___ as an engineer.', options:['work','works','working','worked'], ans:1, exp:'مضارع بسيط + s'},
+{id:34, unit:'3', type:'grammar', sense:'analytical', diff:'medium', q:'What ___ your father do?', options:['do','does','did','is'], ans:1, exp:'What does ... do?'},
+{id:35, unit:'3', type:'dialogue', sense:'social', diff:'medium', q:'A: What do you want to be? B: ___', options:['I want to be a doctor','I am 13','I live in Edfu','I like rice'], ans:0, exp:'طموح'},
+{id:36, unit:'3', type:'reading', sense:'visual', diff:'medium', q:'Pilot flies planes. Where does pilot work?', options:['Airport','School','Hospital','Farm'], ans:0, exp:'مطار'},
+{id:37, unit:'3', type:'writing', sense:'kinesthetic', diff:'medium', q:'رتب: want / I / be / to / engineer / an', options:['I want to be an engineer','Want I be engineer','Be engineer I want','I be want engineer'], ans:0, exp:'ترتيب'},
+{id:38, unit:'3', type:'situational', sense:'social', diff:'medium', q:'تسأل عن وظيفة والد صديقك:', options:['What does your father do?','How old are you?','Where do you live?','What do you like?'], ans:0, exp:'سؤال عن الوظيفة'},
+{id:39, unit:'3', type:'listening', sense:'audio', diff:'easy', q:'👂 "My mother is a nurse" - What is her job?', options:['Nurse ممرضة','Teacher','Doctor','Farmer'], ans:0, exp:'nurse'},
+{id:40, unit:'3', type:'vocab', sense:'analytical', diff:'medium', q:'"Salary" تعني', options:['راتب','إجازة','عمل','مكتب'], ans:0, exp:'salary راتب'},
+// UNIT 4
+{id:41, unit:'4', type:'vocab', sense:'visual', diff:'easy', q:'🏺 "ancient" = ؟', options:['قديم','حديث','مستقبل','حاضر'], ans:0, exp:'ancient قديم'},
+{id:42, unit:'4', type:'grammar', sense:'analytical', diff:'medium', q:'We ___ to Luxor last year.', options:['go','went','going','gone'], ans:1, exp:'last year → went'},
+{id:43, unit:'4', type:'grammar', sense:'analytical', diff:'hard', q:'While I ___ TV, father came.', options:['watch','was watching','watched','am watching'], ans:1, exp:'While + ماضي مستمر'},
+{id:44, unit:'4', type:'grammar', sense:'analytical', diff:'hard', q:'The temple ___ in 1922.', options:['discovered','was discovered','discovering','discover'], ans:1, exp:'مبني للمجهول'},
+{id:45, unit:'4', type:'reading', sense:'visual', diff:'medium', q:'Text: "The High Dam was built in 1960s" When?', options:['1960s','1920s','1990s','2020s'], ans:0, exp:'1960s'},
+{id:46, unit:'4', type:'vocab', sense:'visual', diff:'easy', q:'"Pyramid" = ؟', options:['هرم','معبد','قصر','متحف'], ans:0, exp:'هرم'},
+{id:47, unit:'4', type:'dialogue', sense:'social', diff:'medium', q:'Tourist: When was it built? Guide: ___', options:['It was built in 1900','I am fine','I like it','It is big'], ans:0, exp:'إجابة عن تاريخ'},
+{id:48, unit:'4', type:'listening', sense:'audio', diff:'medium', q:'👂 "It was amazing" - رأيه؟', options:['مذهل','سيء','عادي','صغير'], ans:0, exp:'amazing مذهل'},
+{id:49, unit:'4', type:'writing', sense:'kinesthetic', diff:'medium', q:'اكتب عن زيارة لمعبد', options:['I visited Karnak Temple last week','Hello','Good morning','I am boy'], ans:0, exp:'كتابة عن ماضي'},
+{id:50, unit:'4', type:'situational', sense:'analytical', diff:'hard', q:'لماذا بني السد العالي؟', options:['للتحكم في الفيضان وتوليد كهرباء','للبناء','للسيارات','للأكل'], ans:0, exp:'تحكم في فيضان'},
+// UNIT 5
+{id:51, unit:'5', type:'vocab', sense:'social', diff:'easy', q:'"Volunteer" = ؟ 🤝', options:['متطوع بدون أجر','يعمل بأجر','ينام','يأكل'], ans:0, exp:'volunteer متطوع'},
+{id:52, unit:'5', type:'grammar', sense:'analytical', diff:'medium', q:'Can you ___ me with homework?', options:['help','helps','helping','helped'], ans:0, exp:'Can + مصدر'},
+{id:53, unit:'5', type:'dialogue', sense:'social', diff:'easy', q:'A: Can I help you? B: ___', options:['Yes, please','No thanks','I am fine','Good'], ans:0, exp:'قبول مساعدة'},
+{id:54, unit:'5', type:'vocab', sense:'visual', diff:'easy', q:'"Donate" = ؟', options:['يتبرع','يبيع','يشتري','ينام'], ans:0, exp:'donate يتبرع'},
+{id:55, unit:'5', type:'reading', sense:'social', diff:'medium', q:'Volunteering helps community. Community = ؟', options:['مجتمع','بيت','مدرسة','مستشفى'], ans:0, exp:'مجتمع'},
+// UNIT 6
+{id:56, unit:'6', type:'vocab', sense:'visual', diff:'easy', q:'🏜️ Desert has little ___', options:['water ماء','cars سيارات','people ناس','houses بيوت'], ans:0, exp:'الصحراء قليلة الماء'},
+{id:57, unit:'6', type:'vocab', sense:'visual', diff:'easy', q:'"Pollution" = ؟', options:['تلوث','نظافة','زراعة','بناء'], ans:0, exp:'تلوث'},
+{id:58, unit:'6', type:'grammar', sense:'analytical', diff:'medium', q:'If we ___ trees, air will be clean.', options:['plant','plants','planted','planting'], ans:0, exp:'If مضارع → will'},
+{id:59, unit:'6', type:'reading', sense:'analytical', diff:'medium', q:'Recycling helps environment. Recycling = ؟', options:['إعادة تدوير','تلويث','قطع','بناء'], ans:0, exp:'إعادة تدوير'},
+{id:60, unit:'6', type:'situational', sense:'social', diff:'medium', q:'تريد حماية البيئة، تقول:', options:['We should plant trees','We should pollute','We should cut trees','We should burn'], ans:0, exp:'حماية بيئة'},
+];
+
+// ====== EXAMS - Comprehensive ======
+const EXAMS = {
+'cairo_2024': {
+ title:'القاهرة 2024 - ترم أول - ساعتان - 30 درجة',
+ time:120,
+ questions:[
+  {type:'dialogue', q:'1. Complete dialogue (4 marks): A: ___ (Where) do you live? B: I live in Cairo. A: ___ (How) long have you lived there? B: For 5 years.', options:['Where, How long','When, What','Why, How','What, Where'], ans:0, marks:4},
+  {type:'mini', q:'2. Mini dialogue (2 marks): You want to know your friend’s job. Ask: ___', options:['What do you do?','How old are you?','Where do you live?','What do you like?'], ans:0, marks:2},
+  {type:'reading', q:'3. Read: "Aswan is famous for its beautiful temples and friendly people. Many tourists visit Philae Temple." Q: Why do tourists visit Aswan?', options:['For temples','For snow','For cars','For factories'], ans:0, marks:3},
+  {type:'reading', q:'4. Same text: What is Aswan famous for?', options:['Temples and friendly people','Cars','Factories','Snow'], ans:0, marks:3},
+  {type:'choose', q:'5. Choose: My father ___ in Aswan since 2010.', options:['live','has lived','lived','living'], ans:1, marks:1},
+  {type:'choose', q:'6. Choose: If it rains, we ___ at home.', options:['will stay','stay','stayed','staying'], ans:0, marks:1},
+  {type:'choose', q:'7. Choose: The book ___ by Naguib Mahfouz.', options:['wrote','was written','written','writing'], ans:1, marks:1},
+  {type:'choose', q:'8. Choose: You ___ eat too much sugar.', options:['should','shouldn’t','must','should to'], ans:1, marks:1},
+  {type:'rewrite', q:'9. Rewrite: "My room is bigger than yours" using "as...as" in negative', options:['My room is not as small as yours','My room is as big as','Yours is bigger','My room is small'], ans:0, marks:2},
+  {type:'writing', q:'10. Write paragraph 6 sentences about "How to keep healthy" - AI will check keywords', options:['I eat healthy food...','Hello','Good','I am boy'], ans:0, marks:6},
+ ],
+},
+'cairo_2023': {title:'القاهرة 2023 - ترم أول', time:120, questions:[
+ {type:'dialogue', q:'Dialogue: A: ___ do you feel? B: I have headache.', options:['How','Where','When','What'], ans:0, marks:4},
+ {type:'choose', q:'There ___ a lot of pollution in Cairo.', options:['is','are','am','be'], ans:0, marks:1},
+ {type:'choose', q:'While I ___ TV, lights went out.', options:['was watching','watched','watch','am watching'], ans:0, marks:1},
+]},
+'aswan_2024': {
+ title:'أسوان 2024 - ترم أول - ساعتان - 30 درجة - تركيز بيئة أسوان',
+ time:120,
+ questions:[
+  {type:'dialogue', q:'1. Complete: Tourist: ___ is Philae Temple? Guide: It is on an island.', options:['Where','When','Why','What'], ans:0, marks:2},
+  {type:'dialogue', q:'2. Tourist: How ___ I go there? Guide: By boat.', options:['can','do','does','are'], ans:0, marks:2},
+  {type:'reading', q:'3. Read: "Edfu Temple is one of the best preserved temples. It was built for God Horus." For whom was it built?', options:['God Horus','God Ra','King','Queen'], ans:0, marks:3},
+  {type:'choose', q:'4. We ___ Edfu Temple last year.', options:['visit','visited','have visited','visiting'], ans:1, marks:1},
+  {type:'choose', q:'5. If you visit Aswan, you ___ beautiful temples.', options:['will see','see','saw','seeing'], ans:0, marks:1},
+  {type:'choose', q:'6. The temple ___ built 2000 years ago.', options:['was','were','is','are'], ans:0, marks:1},
+  {type:'writing', q:'7. Write 5 sentences about Aswan', options:['Aswan is beautiful...','Hello','Good','I am'], ans:0, marks:5},
+ ]
+},
+'giza_2024': {title:'الجيزة 2024 - ترم أول', time:120, questions:[
+ {type:'dialogue', q:'Dialogue about pyramids', options:['Where are pyramids?','How are you?','What is name?','Where do you live?'], ans:0, marks:4},
+ {type:'choose', q:'The pyramids ___ by ancient Egyptians.', options:['were built','built','building','build'], ans:0, marks:1},
+]},
+};
+
+// TRAINING LOGIC
+let tFiltered=[...TRAIN_Q];
+let tIndex=0;
+let tSense='';
+let tSolved=JSON.parse(localStorage.getItem('elh_train_solved')||'[]');
+let tSenses=JSON.parse(localStorage.getItem('elh_train_senses')||'{"visual":0,"audio":0,"kinesthetic":0,"social":0,"analytical":0}');
+
+function setSenseTraining(s){ tSense=s; document.querySelectorAll('.s-btn').forEach(b=>b.classList.remove('ring-2','ring-[#00D1C1]')); if(s) document.querySelector(`[data-s="${s}"]`)?.classList.add('ring-2','ring-[#00D1C1]'); renderTraining(); }
+function renderTraining(){
+ const u=document.getElementById('fUnit').value;
+ const t=document.getElementById('fType').value;
+ tFiltered=TRAIN_Q.filter(q=>{
+  if(u && q.unit!==u) return false;
+  if(t && q.type!==t) return false;
+  if(tSense && q.sense!==tSense) return false;
+  return true;
+ });
+ document.getElementById('tTotal').textContent=tFiltered.length;
+ document.getElementById('tSolved').textContent=tSolved.length;
+ document.getElementById('tBar').style.width=tFiltered.length?(tSolved.length/tFiltered.length*100)+'%':'0%';
+ const best=Object.entries(tSenses).sort((a,b)=>b[1]-a[1])[0];
+ document.getElementById('tBest').textContent=best?best[0]+' ('+best[1]+')':'-';
+ if(tIndex>=tFiltered.length) tIndex=0;
+ if(tFiltered.length===0){document.getElementById('tCard').innerHTML='<p class=text-center>لا يوجد أسئلة</p>'; return;}
+ showTT();
+}
+function showTT(){
+ const q=tFiltered[tIndex]; if(!q) return;
+ document.getElementById('tCounter').textContent=(tIndex+1)+' / '+tFiltered.length;
+ const em={visual:'👁️ بصري',audio:'👂 سمعي',kinesthetic:'✋ حركي',social:'🗣️ اجتماعي',analytical:'🧠 تحليلي'}[q.sense]||q.sense;
+ document.getElementById('tCard').innerHTML=`
+  <div class="flex flex-wrap gap-2 mb-3">
+   <span class="px-2 py-1 bg-blue-50 text-[10px] rounded-full">وحدة ${q.unit}</span>
+   <span class="px-2 py-1 bg-purple-50 text-[10px] rounded-full">${q.type}</span>
+   <span class="px-2 py-1 bg-yellow-50 text-[10px] rounded-full">${em}</span>
+  </div>
+  <h2 class="text-lg font-bold mb-4">${q.q}</h2>
+  <div class="grid gap-2">${q.options.map((o,i)=>`<button onclick="tSelect(${i})" id="topt${i}" class="text-right p-3 border-2 border-gray-200 rounded-xl text-sm hover:border-[#00D1C1]">${String.fromCharCode(65+i)}. ${o}</button>`).join('')}</div>
+  <div id="tExp" class="hidden mt-4 p-3 bg-yellow-50 border rounded-xl text-xs"><b>💡 الشرح:</b> ${q.exp}<br>الإجابة: ${String.fromCharCode(65+q.ans)}. ${q.options[q.ans]}</div>
+ `;
+}
+function tSelect(i){
+ const q=tFiltered[tIndex];
+ document.querySelectorAll('[id^=topt]').forEach(b=>b.classList.remove('border-green-500','bg-green-50','border-red-500','bg-red-50'));
+ const b=document.getElementById('topt'+i);
+ if(i===q.ans){b.classList.add('border-green-500','bg-green-50'); tSenses[q.sense]=(tSenses[q.sense]||0)+1; localStorage.setItem('elh_train_senses',JSON.stringify(tSenses));}
+ else {b.classList.add('border-red-500','bg-red-50'); document.getElementById('topt'+q.ans)?.classList.add('border-green-500','bg-green-50');}
+ setTimeout(()=>document.getElementById('tExp').classList.remove('hidden'),400);
+}
+function tAnswer(){ const q=tFiltered[tIndex]; document.getElementById('topt'+q.ans)?.classList.add('border-green-500','bg-green-50'); document.getElementById('tExp').classList.remove('hidden');}
+function tNext(){ if(tIndex<tFiltered.length-1){tIndex++; showTT();}}
+function tPrev(){ if(tIndex>0){tIndex--; showTT();}}
+function tCorrect(){ const q=tFiltered[tIndex]; if(!tSolved.includes(q.id)){tSolved.push(q.id); localStorage.setItem('elh_train_solved',JSON.stringify(tSolved));} tNext(); renderTraining();}
+function tWrong(){ tNext();}
+function tSpeak(){ const q=tFiltered[tIndex]; if('speechSynthesis' in window){const u=new SpeechSynthesisUtterance(q.q); u.lang='en-US'; speechSynthesis.speak(u);}}
+
+// EXAMS LOGIC
+let currentExam=null;
+let examAnswers={};
+let timerInterval=null;
+let timeLeft=0;
+
+function switchMode(m){
+ document.getElementById('modeTraining').classList.toggle('hidden', m!=='training');
+ document.getElementById('modeExams').classList.toggle('hidden', m!=='exams');
+ document.getElementById('btnTraining').className = m==='training' ? 'px-4 py-2 bg-[#0F172A] text-white rounded-xl text-xs font-bold' : 'px-4 py-2 bg-gray-100 rounded-xl text-xs font-bold';
+ document.getElementById('btnExams').className = m==='exams' ? 'px-4 py-2 bg-[#0F172A] text-white rounded-xl text-xs font-bold' : 'px-4 py-2 bg-gray-100 rounded-xl text-xs font-bold';
+}
+
+function loadExam(){
+ const sel=document.getElementById('examSelect').value;
+ if(!sel) return;
+ currentExam=EXAMS[sel];
+ if(!currentExam){ alert('الامتحان غير متوفر حالياً - جاري إضافة باقي المحافظات'); return; }
+ document.getElementById('examInfo').innerHTML=`<b>${currentExam.title}</b> - الزمن: ${currentExam.time} دقيقة - ${currentExam.questions.length} أسئلة`;
+ renderExamPaper();
+}
+
+function renderExamPaper(){
+ if(!currentExam) return;
+ const paper=document.getElementById('examPaper');
+ paper.innerHTML = currentExam.questions.map((q,idx)=>`
+  <div class="p-4 border rounded-2xl">
+   <p class="font-bold text-sm mb-2">${idx+1}. ${q.q} <span class="text-[11px] bg-gray-100 px-2 py-1 rounded-full">${q.marks} درجات</span></p>
+   <div class="grid gap-1">
+    ${q.options.map((o,i)=>`<label class="flex items-center gap-2 p-2 border rounded-xl text-xs hover:bg-gray-50"><input type="radio" name="eq${idx}" value="${i}" onchange="examAnswers[${idx}]=${i}; updateExamProgress()"> ${o}</label>`).join('')}
+   </div>
+   <div id="eExp${idx}" class="hidden mt-2 p-2 bg-yellow-50 rounded text-[11px]">الإجابة الصحيحة: ${String.fromCharCode(65+q.ans)}</div>
+  </div>
+ `).join('');
+}
+
+function startExam(){
+ if(!currentExam){alert('اختر امتحان أولاً');return;}
+ timeLeft=currentExam.time*60;
+ examAnswers={};
+ updateTimer();
+ if(timerInterval) clearInterval(timerInterval);
+ timerInterval=setInterval(()=>{
+  timeLeft--;
+  updateTimer();
+  if(timeLeft<=0){ finishExam(); clearInterval(timerInterval); }
+ },1000);
+ alert('بدأ الامتحان - الزمن: '+currentExam.time+' دقيقة - مثل الامتحان الحقيقي');
+}
+
+function updateTimer(){
+ const h=Math.floor(timeLeft/3600);
+ const m=Math.floor((timeLeft%3600)/60);
+ const s=timeLeft%60;
+ document.getElementById('timer').textContent=`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+}
+
+function updateExamProgress(){
+ const total=currentExam.questions.length;
+ const answered=Object.keys(examAnswers).length;
+ document.getElementById('examBar').style.width=(answered/total*100)+'%';
+}
+
+function finishExam(){
+ if(!currentExam) return;
+ if(timerInterval) clearInterval(timerInterval);
+ let score=0;
+ let details='';
+ currentExam.questions.forEach((q,idx)=>{
+  const userAns=examAnswers[idx];
+  const correct=userAns===q.ans;
+  if(correct) score+=q.marks;
+  details+=`<p class="text-xs">${idx+1}. ${correct?'✅':'❌'} ${correct?q.marks+'/'+q.marks: '0/'+q.marks} - ${q.q.slice(0,60)}...</p>`;
+  const exp=document.getElementById('eExp'+idx);
+  if(exp) exp.classList.remove('hidden');
+ });
+ document.getElementById('examScore').textContent=score;
+ const totalMarks=currentExam.questions.reduce((a,b)=>a+b.marks,0);
+ const percent=Math.round(score/totalMarks*100);
+ let grade='';
+ if(percent>=85) grade='ممتاز';
+ else if(percent>=75) grade='جيد جداً';
+ else if(percent>=60) grade='جيد';
+ else if(percent>=50) grade='مقبول';
+ else grade='ضعيف - يحتاج مراجعة';
+
+ // AI Analysis
+ let aiFeedback='';
+ if(percent<50) aiFeedback='ننصح بمراجعة الوحدات 1-3 + قواعد المضارع التام و If. احجز مراجعة: https://calendly.com/tamerrabie62';
+ else if(percent<75) aiFeedback='مستوى جيد - راجع أخطاء القواعد والمحادثة.';
+ else aiFeedback='ممتاز! استمر في حل بنك التدريبات للحفاظ على المستوى.';
+
+ document.getElementById('examResult').classList.remove('hidden');
+ document.getElementById('examResult').innerHTML=`
+  <h3 class="font-bold text-sm">📊 النتيجة النهائية - تصحيح AI</h3>
+  <p class="text-2xl font-bold mt-2">${score} / ${totalMarks} = ${percent}% - ${grade}</p>
+  <div class="mt-3 text-xs space-y-1">${details}</div>
+  <div class="mt-3 p-3 bg-white rounded-xl border">
+   <p class="font-bold text-xs">🤖 تحليل الذكاء الاصطناعي:</p>
+   <p class="text-xs mt-1">${aiFeedback}</p>
+   <p class="text-[11px] mt-2">أفضل حاسة ظهرت في هذا الامتحان: تحليلي - حاول تقوية الحواس الأخرى من بنك التدريبات</p>
+  </div>
+  <button onclick="window.print()" class="mt-3 w-full bg-[#0F172A] text-white py-2 rounded-xl text-xs">🖨️ طباعة النتيجة</button>
+ `;
+
+ // Save to Supabase if logged in
+ try{
+  const SUPABASE_URL='https://nlbailnajoufqvqdmbjo.supabase.co';
+  const SUPABASE_ANON_KEY='sb_publishable_BdxPeeKHPbAQdccib46oGA_qMSxqMiG';
+  const supabaseClient=supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
+  const user=JSON.parse(localStorage.getItem('elh_current_user')||'null');
+  if(user){
+   supabaseClient.from('activities').insert([{student_id:user.id, activity_type:'exam_'+currentExam.title, score:percent, time_spent: currentExam.time*60 - timeLeft}]);
+  }
+ }catch(e){}
+}
+
+function resetExam(){
+ if(timerInterval) clearInterval(timerInterval);
+ timeLeft=0;
+ examAnswers={};
+ document.getElementById('timer').textContent='02:00:00';
+ document.getElementById('examBar').style.width='0%';
+ document.getElementById('examScore').textContent='0';
+ document.getElementById('examResult').classList.add('hidden');
+ document.getElementById('examPaper').innerHTML='';
+}
+
+window.addEventListener('load', ()=>{ renderTraining(); });
+</script>
+</body>
+</html>
